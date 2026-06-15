@@ -617,6 +617,118 @@
     }
     .demo-label span { color: var(--accent); }
 
+    /* ── DDOS DEMO ── */
+    #ddos-demo { background: var(--bg2); }
+
+    .ddos-window {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      max-width: 780px;
+      margin: 0 auto;
+      box-shadow: 0 0 60px rgba(110,231,183,0.06);
+    }
+
+    .ddos-titlebar {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .ddos-body {
+      padding: 1.5rem;
+      min-height: 340px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ddos-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .ddos-stat-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem;
+    }
+    .ddos-stat-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.3rem; }
+    .ddos-stat-val { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .ddos-stat-val.red { color: #f87171; }
+    .ddos-stat-val.yellow { color: #fbbf24; }
+
+    .ddos-traffic {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 60px;
+      margin-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+    .ddos-bar {
+      flex: 1;
+      border-radius: 2px 2px 0 0;
+      transition: height 0.3s ease;
+      min-height: 2px;
+    }
+    .ddos-bar.attack { background: #f87171; }
+    .ddos-bar.clean  { background: var(--accent); opacity: 0.7; }
+    .ddos-bar.mitigated { background: #fbbf24; }
+
+    .ddos-log {
+      height: 110px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .ddos-log-line {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.68rem;
+      line-height: 1.4;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .ddos-log-line.show { opacity: 1; transform: translateY(0); }
+    .ddos-log-time { color: var(--muted); flex-shrink: 0; }
+    .ddos-log-tag { flex-shrink: 0; padding: 0 5px; border-radius: 3px; font-weight: 700; font-size: 0.6rem; }
+    .ddos-log-tag.block { background: rgba(248,113,113,0.15); color: #f87171; }
+    .ddos-log-tag.allow { background: rgba(110,231,183,0.15); color: var(--accent); }
+    .ddos-log-tag.warn  { background: rgba(251,191,36,0.15);  color: #fbbf24; }
+    .ddos-log-msg { color: var(--text); }
+
+    .ddos-shield {
+      position: absolute;
+      right: 1.5rem;
+      bottom: 1.5rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(110,231,183,0.08);
+      border: 2px solid rgba(110,231,183,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      animation: pulse-shield 2s ease-in-out infinite;
+    }
+    @keyframes pulse-shield {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(110,231,183,0.3); }
+      50% { box-shadow: 0 0 0 12px rgba(110,231,183,0); }
+    }
+
     /* ── SKILLS ── */
     #skills { background: var(--bg3); }
 
@@ -911,6 +1023,7 @@
       <li><a href="#about">Sobre mí</a></li>
       <li><a href="#services">Servicios</a></li>
       <li><a href="#demo">Demo</a></li>
+      <li><a href="#ddos-demo">Anti-DDoS</a></li>
       <li><a href="#projects">Proyectos</a></li>
       <li><a href="#contact">Contacto</a></li>
     </ul>
@@ -1191,6 +1304,56 @@
 
       <div class="demo-label fade-in">
         Hecho con <span>HTML · CSS · JS</span> — igual que esto que estás viendo ahora.
+      </div>
+    </div>
+  </section>
+
+  <!-- ── DDOS MITIGATION DEMO ── -->
+  <section id="ddos-demo">
+    <div class="section-inner">
+      <div class="section-tag fade-in">Seguridad</div>
+      <h2 class="section-title fade-in">Así se ve la mitigación DDoS.</h2>
+      <p class="section-sub fade-in">Monitoreo en tiempo real, bloqueo automático de IPs maliciosas y tráfico limpio pasando sin interrupciones.</p>
+
+      <div class="ddos-window fade-in" id="ddos-window">
+        <div class="ddos-titlebar">
+          <div class="demo-dot red"></div>
+          <div class="demo-dot yellow"></div>
+          <div class="demo-dot green"></div>
+          <div class="demo-url" style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);background:var(--bg2);padding:0.25rem 0.75rem;border-radius:4px;flex:1;margin-left:0.75rem;">🛡️ DDoS Shield — Monitor</div>
+          <span style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#f87171;" id="ddos-status-badge">⚠ ATAQUE DETECTADO</span>
+        </div>
+        <div class="ddos-body">
+
+          <div class="ddos-stats">
+            <div class="ddos-stat-card">
+              <div class="ddos-stat-label">Req/s entrantes</div>
+              <div class="ddos-stat-val red" id="ddos-rps">84,320</div>
+            </div>
+            <div class="ddos-stat-card">
+              <div class="ddos-stat-label">IPs bloqueadas</div>
+              <div class="ddos-stat-val yellow" id="ddos-blocked">1,247</div>
+            </div>
+            <div class="ddos-stat-card">
+              <div class="ddos-stat-label">Tráfico limpio</div>
+              <div class="ddos-stat-val" id="ddos-clean">98.3%</div>
+            </div>
+            <div class="ddos-stat-card">
+              <div class="ddos-stat-label">Uptime</div>
+              <div class="ddos-stat-val" id="ddos-uptime">99.99%</div>
+            </div>
+          </div>
+
+          <div class="ddos-traffic" id="ddos-chart"></div>
+
+          <div class="ddos-log" id="ddos-log"></div>
+
+          <div class="ddos-shield">🛡️</div>
+        </div>
+      </div>
+
+      <div class="demo-label fade-in">
+        Cloudflare · iptables · Nginx · Fail2ban — <span>cero downtime bajo ataque</span>
       </div>
     </div>
   </section>
@@ -1501,6 +1664,119 @@
       }
     });
 
+    // ── DDOS DEMO ANIMATION ──
+    (function() {
+      const logMessages = [
+        { tag: 'block', cls: 'block', msg: 'IP 185.234.219.47 — UDP flood bloqueada (rate limit)' },
+        { tag: 'block', cls: 'block', msg: 'IP 103.77.12.9 — SYN flood detectada, DROP' },
+        { tag: 'warn',  cls: 'warn',  msg: 'Threshold alcanzado: 80k req/s — activando modo escudo' },
+        { tag: 'allow', cls: 'allow', msg: 'Tráfico legítimo 192.168.1.0/24 — bypass autorizado' },
+        { tag: 'block', cls: 'block', msg: 'IP 91.108.56.12 — HTTP flood, regla CF activada' },
+        { tag: 'allow', cls: 'allow', msg: 'CDN edge node — 2,840 req/s limpias enrutadas' },
+        { tag: 'block', cls: 'block', msg: 'Botnet subnet 45.155.x.x — /24 en blacklist' },
+        { tag: 'warn',  cls: 'warn',  msg: 'Pico de tráfico: origen AS detectado — geoblocking' },
+        { tag: 'allow', cls: 'allow', msg: 'Cloudflare proxy activo — SSL termination OK' },
+        { tag: 'block', cls: 'block', msg: 'IP 77.91.84.3 — amplificación DNS, REJECT' },
+        { tag: 'allow', cls: 'allow', msg: 'Rate limiting aplicado — 98.3% tráfico limpio' },
+        { tag: 'block', cls: 'block', msg: 'IP 194.165.16.x — ICMP flood bloqueada' },
+      ];
+
+      const chart = document.getElementById('ddos-chart');
+      const log = document.getElementById('ddos-log');
+      const rpsEl = document.getElementById('ddos-rps');
+      const blockedEl = document.getElementById('ddos-blocked');
+      const badge = document.getElementById('ddos-status-badge');
+
+      // Generar barras del chart
+      const barCount = 48;
+      const bars = [];
+      for (let i = 0; i < barCount; i++) {
+        const bar = document.createElement('div');
+        bar.className = 'ddos-bar';
+        const isAttack = i > 20 && i < 40;
+        const isMitigated = i >= 35 && i < 40;
+        bar.classList.add(isMitigated ? 'mitigated' : isAttack ? 'attack' : 'clean');
+        const h = isAttack ? (30 + Math.random() * 28) : (8 + Math.random() * 18);
+        bar.style.height = h + 'px';
+        chart.appendChild(bar);
+        bars.push(bar);
+      }
+
+      let logIdx = 0;
+      let blocked = 1247;
+      let rps = 84320;
+      let mitigating = false;
+
+      function addLog() {
+        const entry = logMessages[logIdx % logMessages.length];
+        logIdx++;
+
+        // Limpiar logs viejos si hay más de 4
+        const existing = log.querySelectorAll('.ddos-log-line');
+        if (existing.length >= 4) existing[0].remove();
+
+        const now = new Date();
+        const time = now.toTimeString().slice(0,8);
+        const line = document.createElement('div');
+        line.className = 'ddos-log-line';
+        line.innerHTML = `<span class="ddos-log-time">${time}</span><span class="ddos-log-tag ${entry.cls}">${entry.tag.toUpperCase()}</span><span class="ddos-log-msg">${entry.msg}</span>`;
+        log.appendChild(line);
+        requestAnimationFrame(() => line.classList.add('show'));
+      }
+
+      function updateStats() {
+        // Simular variación
+        rps = Math.max(800, rps + (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 3000));
+        if (rps > 90000) mitigating = true;
+        if (mitigating) rps = Math.max(800, rps - 2000);
+        if (rps < 5000) { mitigating = false; }
+
+        blocked += Math.floor(Math.random() * 8);
+
+        rpsEl.textContent = rps.toLocaleString();
+        blockedEl.textContent = blocked.toLocaleString();
+
+        if (rps > 40000) {
+          rpsEl.className = 'ddos-stat-val red';
+          badge.textContent = '⚠ ATAQUE DETECTADO';
+          badge.style.color = '#f87171';
+        } else if (rps > 10000) {
+          rpsEl.className = 'ddos-stat-val yellow';
+          badge.textContent = '⚡ MITIGANDO...';
+          badge.style.color = '#fbbf24';
+        } else {
+          rpsEl.className = 'ddos-stat-val';
+          badge.textContent = '✓ PROTEGIDO';
+          badge.style.color = 'var(--accent)';
+        }
+
+        // Scroll chart
+        bars.forEach((bar, i) => {
+          if (i < bars.length - 1) {
+            bar.style.height = bars[i+1].style.height;
+            bar.className = bars[i+1].className;
+          } else {
+            const newH = rps > 40000 ? (28 + Math.random()*28) : rps > 10000 ? (12 + Math.random()*20) : (4 + Math.random()*14);
+            bar.style.height = newH + 'px';
+            bar.className = 'ddos-bar ' + (rps > 40000 ? 'attack' : rps > 10000 ? 'mitigated' : 'clean');
+          }
+        });
+      }
+
+      // Arrancar cuando sea visible
+      const ddosObs = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setInterval(updateStats, 600);
+          setInterval(addLog, 1200);
+          addLog();
+          ddosObs.disconnect();
+        }
+      }, { threshold: 0.3 });
+
+      const ddosWindow = document.getElementById('ddos-window');
+      if (ddosWindow) ddosObs.observe(ddosWindow);
+    })();
+
     // ── CONTACT FORM ──
     const contactForm = document.getElementById('contact-form');
     const cfBtn = document.getElementById('cf-btn');
@@ -1580,3 +1856,4 @@
   </script>
 </body>
 </html>
+
