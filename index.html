@@ -1397,7 +1397,7 @@
     // ══════════════════════════════════════════
     const MUSIC_CONFIG = {
       videoId: 'KqLkaQj8OHM',
-      startSec: 17,   // 1min 25seg
+      startSec: 18,   // 1min 25seg
       endSec: 85    // que suene hasta el final
     };
     // ══════════════════════════════════════════
@@ -1427,8 +1427,24 @@
           onReady: (e) => {
             ytReady = true;
             e.target.seekTo(MUSIC_CONFIG.startSec);
-            e.target.setVolume(35);
+            e.target.setVolume(20);
+            // Intentar autoplay directo
             e.target.playVideo();
+            // Si el navegador lo bloquea, arrancar al primer gesto
+            const startOnInteraction = () => {
+              if (!isPlaying) {
+                player.seekTo(MUSIC_CONFIG.startSec);
+                player.playVideo();
+              }
+              document.removeEventListener('click', startOnInteraction);
+              document.removeEventListener('scroll', startOnInteraction);
+              document.removeEventListener('keydown', startOnInteraction);
+              document.removeEventListener('touchstart', startOnInteraction);
+            };
+            document.addEventListener('click', startOnInteraction);
+            document.addEventListener('scroll', startOnInteraction);
+            document.addEventListener('keydown', startOnInteraction);
+            document.addEventListener('touchstart', startOnInteraction);
           },
           onStateChange: (e) => {
             if (e.data === YT.PlayerState.PLAYING) {
@@ -1512,3 +1528,4 @@
   </script>
 </body>
 </html>
+
