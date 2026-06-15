@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -681,10 +681,10 @@
 
     .contact-wrapper {
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
       align-items: start;
-      max-width: 560px;
+      max-width: 900px;
     }
 
     .contact-links {
@@ -1378,6 +1378,26 @@
           </div>
         </div>
 
+        <!-- FORM -->
+        <div class="fade-in">
+          <form id="contact-form" action="https://formspree.io/f/REEMPLAZA_ESTO" method="POST">
+            <input type="hidden" name="_replyto" value="">
+            <div class="form-group">
+              <label class="form-label" for="cf-name">Nombre</label>
+              <input class="form-input" type="text" id="cf-name" name="name" placeholder="Tu nombre" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="cf-email">Email</label>
+              <input class="form-input" type="email" id="cf-email" name="email" placeholder="tu@email.com" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="cf-msg">Mensaje</label>
+              <textarea class="form-textarea" id="cf-msg" name="message" placeholder="Contame sobre tu proyecto..." required></textarea>
+            </div>
+            <button class="form-btn" type="submit" id="cf-btn">Enviar mensaje →</button>
+            <p id="cf-status" style="margin-top:0.75rem;font-size:0.82rem;color:var(--accent);display:none;font-family:'Space Mono',monospace;"></p>
+          </form>
+        </div>
 
       </div>
     </div>
@@ -1481,6 +1501,38 @@
       }
     });
 
+    // ── CONTACT FORM ──
+    const contactForm = document.getElementById('contact-form');
+    const cfBtn = document.getElementById('cf-btn');
+    const cfStatus = document.getElementById('cf-status');
+    if (contactForm) {
+      contactForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        cfBtn.textContent = 'Enviando...';
+        cfBtn.disabled = true;
+        try {
+          const res = await fetch(contactForm.action, {
+            method: 'POST',
+            body: new FormData(contactForm),
+            headers: { 'Accept': 'application/json' }
+          });
+          if (res.ok) {
+            cfStatus.textContent = '✓ Mensaje enviado. Te respondo pronto.';
+            cfStatus.style.color = 'var(--accent)';
+            cfStatus.style.display = 'block';
+            contactForm.reset();
+            cfBtn.textContent = 'Enviado ✓';
+          } else { throw new Error(); }
+        } catch {
+          cfStatus.textContent = '✗ Error al enviar. Intentá por WhatsApp.';
+          cfStatus.style.color = '#f87171';
+          cfStatus.style.display = 'block';
+          cfBtn.textContent = 'Enviar mensaje →';
+          cfBtn.disabled = false;
+        }
+      });
+    }
+
     // ── FADE IN SCROLL ──
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
@@ -1528,5 +1580,3 @@
   </script>
 </body>
 </html>
-
-
