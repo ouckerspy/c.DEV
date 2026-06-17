@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://carlosdev.xyz/sitemap.xml
+Sitemap: https://carlosdev.xyz/sitemap-index.xml
