@@ -63,9 +63,15 @@
   #hero {
     position: relative;
   }
+  .hero-content {
+    position: relative;
+    width: 100%;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
   #munequito-hero {
     position: absolute;
-    right: 8%;
+    right: 220px;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
@@ -73,7 +79,7 @@
     animation: levitar 3.5s ease-in-out infinite;
   }
   #munequito-hero img {
-    width: 280px;
+    width: 380px;
     display: block;
     image-rendering: pixelated;
     filter: drop-shadow(0 0 22px rgba(110,231,183,0.65))
@@ -1037,6 +1043,8 @@
       #music-player { bottom: 1rem; right: 1rem; }
       .music-bar { min-width: 180px; }
 
+      #hero { padding-top: 6rem; }
+
       #munequito-hero {
         position: relative;
         right: auto;
@@ -1045,7 +1053,7 @@
         animation: levitar-mobile 3.5s ease-in-out infinite;
         display: flex;
         justify-content: center;
-        margin: 1.5rem auto -2rem;
+        margin: 0 auto 0.5rem;
       }
       #munequito-hero img {
         width: 160px;
