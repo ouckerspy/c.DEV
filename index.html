@@ -1647,27 +1647,32 @@
           <div class="demo-dot yellow"></div>
           <div class="demo-dot green"></div>
           <div class="demo-url" style="font-family:'Space Mono',monospace;font-size:0.7rem;color:var(--muted);background:var(--bg2);padding:0.25rem 0.75rem;border-radius:4px;flex:1;margin-left:0.75rem;">🛡️ DDoS Shield — Monitor</div>
-          <span style="font-family:'Space Mono',monospace;font-size:0.65rem;color:#f87171;" id="ddos-status-badge">⚠ ATAQUE DETECTADO</span>
+          <span style="font-family:'Space Mono',monospace;font-size:0.65rem;color:var(--accent);" id="ddos-status-badge">✓ PROTEGIDO</span>
         </div>
         <div class="ddos-body">
 
           <div class="ddos-stats">
             <div class="ddos-stat-card">
               <div class="ddos-stat-label">Req/s entrantes</div>
-              <div class="ddos-stat-val red" id="ddos-rps">84,320</div>
+              <div class="ddos-stat-val" id="ddos-rps">0</div>
             </div>
             <div class="ddos-stat-card">
               <div class="ddos-stat-label">IPs bloqueadas</div>
-              <div class="ddos-stat-val yellow" id="ddos-blocked">1,247</div>
+              <div class="ddos-stat-val" id="ddos-blocked">0</div>
             </div>
             <div class="ddos-stat-card">
               <div class="ddos-stat-label">Tráfico limpio</div>
-              <div class="ddos-stat-val" id="ddos-clean">98.3%</div>
+              <div class="ddos-stat-val" id="ddos-clean">100%</div>
             </div>
             <div class="ddos-stat-card">
-              <div class="ddos-stat-label">Uptime</div>
-              <div class="ddos-stat-val" id="ddos-uptime">99.99%</div>
+              <div class="ddos-stat-label">Procesados</div>
+              <div class="ddos-stat-val" id="ddos-total">0</div>
             </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:0.75rem;margin-bottom:1.1rem;flex-wrap:wrap;">
+            <span style="font-family:'Space Mono',monospace;font-size:0.6rem;color:var(--muted);max-width:380px;">⚙ Motor real: Sliding Window Rate Limiter corriendo en tu navegador, no es una animación con datos fijos.</span>
+            <button id="ddos-trigger-btn" class="sim-btn-primary" style="border:none;cursor:pointer;font-family:'Space Mono',monospace;font-size:0.65rem;flex-shrink:0;">⚡ Simular ataque ahora</button>
           </div>
 
           <div class="ddos-traffic" id="ddos-chart"></div>
@@ -1679,7 +1684,7 @@
       </div>
 
       <div class="demo-label fade-in">
-        Cloudflare · iptables · Nginx · Fail2ban — <span>cero downtime bajo ataque</span>
+        Algoritmo real de rate limiting · ventana deslizante + bloqueo por IP — <span>corre 100% client-side, sin backend</span>
       </div>
     </div>
   </section>
@@ -1990,108 +1995,89 @@
       }
     });
 
-    // ── DDOS DEMO ANIMATION ──
-    // Simulación de un ciclo REAL de mitigación (no es ruido random):
-    // Normal → Detección → Ataque → Mitigación activa → Recuperación → loop
+    // ══════════════════════════════════════════
+    //  ANTI-DDOS — motor real de rate limiting
+    //  Sliding window + bloqueo por IP, corriendo
+    //  100% en el navegador. No es animación con
+    //  números fijos: el algoritmo decide en vivo.
+    //  El tráfico de entrada es sintético (no hay
+    //  backend real detrás), pero la lógica que
+    //  bloquea/permite SÍ es código real ejecutándose.
+    // ══════════════════════════════════════════
     (function() {
       const chart = document.getElementById('ddos-chart');
       const log = document.getElementById('ddos-log');
       const rpsEl = document.getElementById('ddos-rps');
       const blockedEl = document.getElementById('ddos-blocked');
+      const cleanEl = document.getElementById('ddos-clean');
+      const totalEl = document.getElementById('ddos-total');
       const badge = document.getElementById('ddos-status-badge');
+      const triggerBtn = document.getElementById('ddos-trigger-btn');
+      const ddosWindow = document.getElementById('ddos-window');
+      if (!chart || !ddosWindow) return;
 
-      // Fases del ciclo de mitigación, cada una con su rango de RPS y mensajes propios
-      const PHASES = [
-        {
-          name: 'normal', duration: 9000, rpsFrom: 900, rpsTo: 1600, status: 'clean',
-          badge: '✓ PROTEGIDO', badgeColor: 'var(--accent)',
-          messages: [
-            'Tráfico estable — 100% legítimo',
-            'Cloudflare proxy activo — SSL termination OK',
-            'CDN edge node — tráfico limpio enrutado',
-            'Rate limiting en espera — sin anomalías'
-          ]
-        },
-        {
-          name: 'ramp', duration: 4000, rpsFrom: 1600, rpsTo: 92000, status: 'attack',
-          badge: '⚠ PICO DE TRÁFICO', badgeColor: '#fbbf24',
-          messages: [
-            'Pico de tráfico detectado — analizando origen',
-            'Múltiples IPs desde subnet sospechosa 45.155.x.x',
-            'Threshold superado: escalando a modo escudo'
-          ]
-        },
-        {
-          name: 'attack', duration: 5000, rpsFrom: 92000, rpsTo: 96000, status: 'attack',
-          badge: '⚠ ATAQUE DETECTADO', badgeColor: '#f87171',
-          messages: [
-            'IP 185.234.219.47 — UDP flood, DROP',
-            'IP 103.77.12.9 — SYN flood detectada',
-            'Botnet subnet 45.155.x.x — /24 en blacklist',
-            'IP 91.108.56.12 — HTTP flood, regla CF activada',
-            'IP 77.91.84.3 — amplificación DNS, REJECT'
-          ]
-        },
-        {
-          name: 'mitigating', duration: 6000, rpsFrom: 96000, rpsTo: 6000, status: 'mitigated',
-          badge: '⚡ MITIGANDO...', badgeColor: '#fbbf24',
-          messages: [
-            'Rate limiting aplicado — filtrando origen del ataque',
-            'IP 194.165.16.x — ICMP flood bloqueada',
-            'Geoblocking activado sobre AS detectado',
-            'Tráfico limpio recuperándose — 87% filtrado',
-            'Mitigación efectiva — descendiendo a niveles normales'
-          ]
-        },
-        {
-          name: 'recovering', duration: 3000, rpsFrom: 6000, rpsTo: 900, status: 'clean',
-          badge: '✓ PROTEGIDO', badgeColor: 'var(--accent)',
-          messages: [
-            'Tráfico legítimo 192.168.1.0/24 — bypass autorizado',
-            'Niveles normales restablecidos',
-            'Sistema estable — 99.99% uptime'
-          ]
+      function rnd(a, b) { return Math.floor(a + Math.random() * (b - a + 1)); }
+      function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+      function randIP() { return `${rnd(1, 223)}.${rnd(0, 255)}.${rnd(0, 255)}.${rnd(1, 254)}`; }
+      const COUNTRIES = ['AR', 'BR', 'US', 'RU', 'CN', 'DE', 'NL', 'VN', 'IN', 'FR'];
+      const LEGIT_IPS = Array.from({ length: 22 }, randIP);
+
+      // ── Motor real: ventana deslizante + bloqueo por IP ──
+      class RateLimiter {
+        constructor() {
+          this.events = [];         // {ip, ts}
+          this.blocked = new Map(); // ip -> timestamp en que se desbloquea
+          this.windowMs = 4000;     // ventana de evaluación
+          this.maxPerIp = 6;        // requests permitidos por IP dentro de la ventana
+          this.blockMs = 12000;     // duración real del bloqueo
+          this.totalProcessed = 0;
+          this.totalBlockedHits = 0;
         }
-      ];
+        process(ip) {
+          const now = performance.now();
+          this.totalProcessed++;
+          for (const [k, until] of this.blocked) if (now > until) this.blocked.delete(k);
+          if (this.blocked.has(ip)) {
+            this.totalBlockedHits++;
+            this.events.push({ ip, ts: now });
+            return 'block_repeat';
+          }
+          this.events = this.events.filter(e => now - e.ts < this.windowMs);
+          const countIp = this.events.filter(e => e.ip === ip).length;
+          this.events.push({ ip, ts: now });
+          if (countIp + 1 >= this.maxPerIp) {
+            this.blocked.set(ip, now + this.blockMs);
+            this.totalBlockedHits++;
+            return 'block_new';
+          }
+          return 'allow';
+        }
+        rps() {
+          const now = performance.now();
+          return this.events.filter(e => now - e.ts < 1000).length;
+        }
+        activeBlocks() { return this.blocked.size; }
+      }
 
-      let blocked = 1247;
-      let phaseIdx = 0;
-      let phaseStart = performance.now();
+      const engine = new RateLimiter();
+      let attackActive = false;
+
+      // ── barras del gráfico, alimentadas con valores reales del motor ──
       const barCount = 48;
       const bars = [];
-      const history = []; // valores rps recientes, para dibujar las barras
-
+      const history = Array(barCount).fill(0);
       for (let i = 0; i < barCount; i++) {
         const bar = document.createElement('div');
         bar.className = 'ddos-bar clean';
-        bar.style.height = '8px';
+        bar.style.height = '4px';
         chart.appendChild(bar);
         bars.push(bar);
-        history.push(900);
       }
 
-      function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
-
-      function currentPhase(now) {
-        let phase = PHASES[phaseIdx];
-        const elapsed = now - phaseStart;
-        if (elapsed >= phase.duration) {
-          phaseIdx = (phaseIdx + 1) % PHASES.length;
-          phaseStart = now;
-          phase = PHASES[phaseIdx];
-          return { phase, progress: 0 };
-        }
-        return { phase, progress: Math.min(elapsed / phase.duration, 1) };
-      }
-
-      function addLog(phase) {
-        const msg = phase.messages[Math.floor(Math.random() * phase.messages.length)];
+      function logLine(tagCls, tagTxt, msg) {
         const existing = log.querySelectorAll('.ddos-log-line');
         if (existing.length >= 4) existing[0].remove();
-        const now = new Date();
-        const time = now.toTimeString().slice(0, 8);
-        const tagCls = phase.status === 'clean' ? 'allow' : phase.status === 'mitigated' ? 'warn' : 'block';
-        const tagTxt = phase.status === 'clean' ? 'ALLOW' : phase.status === 'mitigated' ? 'MITIG' : 'BLOCK';
+        const time = new Date().toTimeString().slice(0, 8);
         const line = document.createElement('div');
         line.className = 'ddos-log-line';
         line.innerHTML = `<span class="ddos-log-time">${time}</span><span class="ddos-log-tag ${tagCls}">${tagTxt}</span><span class="ddos-log-msg">${msg}</span>`;
@@ -2099,57 +2085,96 @@
         requestAnimationFrame(() => line.classList.add('show'));
       }
 
-      function tick() {
-        const now = performance.now();
-        const { phase, progress } = currentPhase(now);
-        const eased = ease(progress);
-        const rps = Math.round(phase.rpsFrom + (phase.rpsTo - phase.rpsFrom) * eased);
+      // ── tráfico base "legítimo", siempre corriendo ──
+      setInterval(() => {
+        engine.process(pick(LEGIT_IPS));
+      }, rnd(300, 600));
 
-        // bloqueados sube fuerte en ataque/mitigación, casi nada en limpio
-        if (phase.status === 'attack') blocked += Math.floor(40 + Math.random() * 60);
-        else if (phase.status === 'mitigated') blocked += Math.floor(15 + Math.random() * 25);
-        else blocked += Math.random() < 0.3 ? 1 : 0;
+      // ── log ocasional de tráfico limpio cuando no hay nada raro ──
+      setInterval(() => {
+        if (!attackActive && engine.activeBlocks() === 0) {
+          logLine('allow', 'ALLOW', `Tráfico legítimo desde ${pick(LEGIT_IPS)} (${pick(COUNTRIES)}) — sin anomalías`);
+        }
+      }, rnd(6000, 9000));
 
-        rpsEl.textContent = rps.toLocaleString();
-        blockedEl.textContent = blocked.toLocaleString();
-        rpsEl.className = 'ddos-stat-val' + (phase.status === 'attack' ? ' red' : phase.status === 'mitigated' ? ' yellow' : '');
-        badge.textContent = phase.badge;
-        badge.style.color = phase.badgeColor;
+      // ── simulación de ataque: ráfaga real procesada por el motor ──
+      function runAttack() {
+        if (attackActive) return;
+        attackActive = true;
+        if (triggerBtn) { triggerBtn.disabled = true; triggerBtn.textContent = '🛡 Mitigando ataque...'; }
+        const attackerIPs = Array.from({ length: rnd(4, 7) }, randIP);
+        const endAt = performance.now() + 7000;
+        const burst = setInterval(() => {
+          if (performance.now() > endAt) {
+            clearInterval(burst);
+            attackActive = false;
+            if (triggerBtn) { triggerBtn.disabled = false; triggerBtn.textContent = '⚡ Simular ataque ahora'; }
+            return;
+          }
+          const n = rnd(6, 14);
+          for (let i = 0; i < n; i++) {
+            const ip = Math.random() < 0.78 ? pick(attackerIPs) : randIP();
+            const res = engine.process(ip);
+            if (res === 'block_new') {
+              logLine('block', 'BLOCK', `IP ${ip} (${pick(COUNTRIES)}) superó ${engine.maxPerIp} req en ${engine.windowMs / 1000}s — bloqueada ${engine.blockMs / 1000}s`);
+            }
+          }
+        }, 180);
+      }
+
+      if (triggerBtn) triggerBtn.addEventListener('click', runAttack);
+
+      // ── render: todo viene de números REALES del motor, no de un guion ──
+      function render() {
+        const rps = engine.rps();
+        const activeBlocks = engine.activeBlocks();
+        const totalP = engine.totalProcessed;
+        const totalB = engine.totalBlockedHits;
+        const cleanPct = totalP ? Math.max(0, 100 - (totalB / totalP) * 100) : 100;
+
+        rpsEl.textContent = rps;
+        blockedEl.textContent = activeBlocks;
+        cleanEl.textContent = cleanPct.toFixed(1) + '%';
+        totalEl.textContent = totalP.toLocaleString();
+
+        let badgeTxt, badgeColor, rpsCls;
+        if (rps > 18) { badgeTxt = '⚠ ATAQUE EN CURSO'; badgeColor = '#f87171'; rpsCls = ' red'; }
+        else if (activeBlocks > 0) { badgeTxt = '⚡ MITIGANDO'; badgeColor = '#fbbf24'; rpsCls = ' yellow'; }
+        else { badgeTxt = '✓ PROTEGIDO'; badgeColor = 'var(--accent)'; rpsCls = ''; }
+        rpsEl.className = 'ddos-stat-val' + rpsCls;
+        badge.textContent = badgeTxt;
+        badge.style.color = badgeColor;
 
         history.push(rps);
         history.shift();
-        const maxH = Math.max(...history, 1);
+        const maxH = Math.max(...history, 5);
         bars.forEach((bar, i) => {
           const v = history[i];
           const h = Math.max(4, (v / maxH) * 56);
           bar.style.height = h + 'px';
-          bar.className = 'ddos-bar ' + (v > 40000 ? 'attack' : v > 8000 ? 'mitigated' : 'clean');
+          bar.className = 'ddos-bar ' + (v > 18 ? 'attack' : v > 5 ? 'mitigated' : 'clean');
         });
       }
 
-      let lastLogPhase = null;
-      function loop() {
-        tick();
-        const phase = PHASES[phaseIdx];
-        if (phase !== lastLogPhase) {
-          addLog(phase);
-          lastLogPhase = phase;
-        }
+      let renderTimer = null;
+      let autoAttackTimer = null;
+
+      function scheduleAutoAttack() {
+        autoAttackTimer = setTimeout(() => {
+          runAttack();
+          scheduleAutoAttack();
+        }, rnd(25000, 40000));
       }
 
-      // Arrancar cuando sea visible
       const ddosObs = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
-          phaseStart = performance.now();
-          setInterval(loop, 500);
-          setInterval(() => addLog(PHASES[phaseIdx]), 1400);
-          loop();
+          renderTimer = setInterval(render, 450);
+          render();
+          scheduleAutoAttack();
           ddosObs.disconnect();
         }
       }, { threshold: 0.3 });
-
-      const ddosWindow = document.getElementById('ddos-window');
-      if (ddosWindow) ddosObs.observe(ddosWindow);
+      ddosObs.observe(ddosWindow);
     })();
 
     // ── CONTACT FORM ──
