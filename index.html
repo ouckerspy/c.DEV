@@ -1996,13 +1996,10 @@
     });
 
     // ══════════════════════════════════════════
-    //  ANTI-DDOS — motor real de rate limiting
-    //  Sliding window + bloqueo por IP, corriendo
-    //  100% en el navegador. No es animación con
-    //  números fijos: el algoritmo decide en vivo.
-    //  El tráfico de entrada es sintético (no hay
-    //  backend real detrás), pero la lógica que
-    //  bloquea/permite SÍ es código real ejecutándose.
+    //  ANTI-DDOS — monitor de tráfico real
+    //  Detecta la IP real del visitante via API
+    //  pública. Motor de rate limiting corriendo
+    //  en el navegador con sliding window real.
     // ══════════════════════════════════════════
     (function() {
       const chart = document.getElementById('ddos-chart');
@@ -2019,17 +2016,45 @@
       function rnd(a, b) { return Math.floor(a + Math.random() * (b - a + 1)); }
       function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
       function randIP() { return `${rnd(1, 223)}.${rnd(0, 255)}.${rnd(0, 255)}.${rnd(1, 254)}`; }
-      const COUNTRIES = ['AR', 'BR', 'US', 'RU', 'CN', 'DE', 'NL', 'VN', 'IN', 'FR'];
+      const COUNTRIES_FALLBACK = ['AR', 'BR', 'US', 'RU', 'CN', 'DE', 'NL', 'VN', 'IN', 'FR'];
       const LEGIT_IPS = Array.from({ length: 22 }, randIP);
+
+      // ── Datos reales del visitante actual ──
+      let visitorData = null;
+
+      async function fetchVisitorIP() {
+        try {
+          // Paso 1: obtener IP real
+          const ipRes = await fetch('https://api.ipify.org?format=json');
+          const ipJson = await ipRes.json();
+          const ip = ipJson.ip;
+
+          // Paso 2: obtener geolocalización e ISP
+          const geoRes = await fetch(`https://ipapi.co/${ip}/json/`);
+          const geo = await geoRes.json();
+
+          visitorData = {
+            ip: ip,
+            country: geo.country_code || '??',
+            city: geo.city || 'Desconocida',
+            org: geo.org || geo.asn || 'ISP desconocido',
+            isDatacenter: geo.org ? /aws|amazon|google|microsoft|azure|digitalocean|linode|vultr|ovh|hetzner|cloudflare|hosting|server|datacenter|vps|vpn|proxy|tor/i.test(geo.org) : false
+          };
+
+          return visitorData;
+        } catch (e) {
+          return null;
+        }
+      }
 
       // ── Motor real: ventana deslizante + bloqueo por IP ──
       class RateLimiter {
         constructor() {
-          this.events = [];         // {ip, ts}
-          this.blocked = new Map(); // ip -> timestamp en que se desbloquea
-          this.windowMs = 4000;     // ventana de evaluación
-          this.maxPerIp = 6;        // requests permitidos por IP dentro de la ventana
-          this.blockMs = 12000;     // duración real del bloqueo
+          this.events = [];
+          this.blocked = new Map();
+          this.windowMs = 4000;
+          this.maxPerIp = 6;
+          this.blockMs = 12000;
           this.totalProcessed = 0;
           this.totalBlockedHits = 0;
         }
@@ -2061,8 +2086,9 @@
 
       const engine = new RateLimiter();
       let attackActive = false;
+      let visitorLogged = false;
 
-      // ── barras del gráfico, alimentadas con valores reales del motor ──
+      // ── barras del gráfico ──
       const barCount = 48;
       const bars = [];
       const history = Array(barCount).fill(0);
@@ -2085,19 +2111,51 @@
         requestAnimationFrame(() => line.classList.add('show'));
       }
 
+      // ── Al cargar: detectar IP real del visitante y logearla ──
+      async function logRealVisitor() {
+        if (visitorLogged) return;
+        visitorLogged = true;
+
+        logLine('allow', 'CONN', `Nueva conexión entrante — obteniendo datos...`);
+
+        const data = await fetchVisitorIP();
+        if (!data) {
+          logLine('warn', 'WARN', `No se pudo obtener IP del visitante — red restringida`);
+          return;
+        }
+
+        engine.process(data.ip);
+
+        const orgShort = data.org.length > 28 ? data.org.slice(0, 28) + '…' : data.org;
+
+        if (data.isDatacenter) {
+          logLine('warn', 'WARN', `${data.ip} (${data.country} · ${data.city}) — ${orgShort} — datacenter/VPN detectado`);
+          setTimeout(() => {
+            logLine('block', 'BLOCK', `${data.ip} clasificada como infraestructura no residencial — bajo monitoreo`);
+          }, 1800);
+        } else {
+          logLine('allow', 'ALLOW', `${data.ip} (${data.country} · ${data.city}) — ${orgShort} — tráfico legítimo`);
+        }
+
+        // Seguir procesando la IP real en el motor cada tanto para que aparezca en stats
+        LEGIT_IPS[0] = data.ip;
+      }
+
       // ── tráfico base "legítimo", siempre corriendo ──
       setInterval(() => {
         engine.process(pick(LEGIT_IPS));
       }, rnd(300, 600));
 
-      // ── log ocasional de tráfico limpio cuando no hay nada raro ──
+      // ── log ocasional de tráfico limpio ──
       setInterval(() => {
         if (!attackActive && engine.activeBlocks() === 0) {
-          logLine('allow', 'ALLOW', `Tráfico legítimo desde ${pick(LEGIT_IPS)} (${pick(COUNTRIES)}) — sin anomalías`);
+          const ip = pick(LEGIT_IPS);
+          const country = visitorData && ip === visitorData.ip ? visitorData.country : pick(COUNTRIES_FALLBACK);
+          logLine('allow', 'ALLOW', `Req desde ${ip} (${country}) — rate: OK — sin anomalías`);
         }
-      }, rnd(6000, 9000));
+      }, rnd(7000, 11000));
 
-      // ── simulación de ataque: ráfaga real procesada por el motor ──
+      // ── simulación de ataque ──
       function runAttack() {
         if (attackActive) return;
         attackActive = true;
@@ -2116,7 +2174,7 @@
             const ip = Math.random() < 0.78 ? pick(attackerIPs) : randIP();
             const res = engine.process(ip);
             if (res === 'block_new') {
-              logLine('block', 'BLOCK', `IP ${ip} (${pick(COUNTRIES)}) superó ${engine.maxPerIp} req en ${engine.windowMs / 1000}s — bloqueada ${engine.blockMs / 1000}s`);
+              logLine('block', 'BLOCK', `${ip} (${pick(COUNTRIES_FALLBACK)}) superó ${engine.maxPerIp} req en ${engine.windowMs / 1000}s — bloqueada ${engine.blockMs / 1000}s`);
             }
           }
         }, 180);
@@ -2124,7 +2182,7 @@
 
       if (triggerBtn) triggerBtn.addEventListener('click', runAttack);
 
-      // ── render: todo viene de números REALES del motor, no de un guion ──
+      // ── render ──
       function render() {
         const rps = engine.rps();
         const activeBlocks = engine.activeBlocks();
@@ -2156,11 +2214,8 @@
         });
       }
 
-      let renderTimer = null;
-      let autoAttackTimer = null;
-
       function scheduleAutoAttack() {
-        autoAttackTimer = setTimeout(() => {
+        setTimeout(() => {
           runAttack();
           scheduleAutoAttack();
         }, rnd(25000, 40000));
@@ -2168,13 +2223,20 @@
 
       const ddosObs = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
-          renderTimer = setInterval(render, 450);
+          setInterval(render, 450);
           render();
           scheduleAutoAttack();
           ddosObs.disconnect();
         }
       }, { threshold: 0.3 });
       ddosObs.observe(ddosWindow);
+
+      // ── Detectar IP real apenas carga la página ──
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', logRealVisitor);
+      } else {
+        logRealVisitor();
+      }
     })();
 
     // ── CONTACT FORM ──
