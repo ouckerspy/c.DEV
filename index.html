@@ -1009,6 +1009,220 @@
 
     .music-waves.paused .music-wave { animation-play-state: paused; }
 
+    /* ── AI CHAT WIDGET ── */
+    #ai-chat {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 1.5rem;
+      z-index: 250;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .ai-toggle {
+      width: 54px; height: 54px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      background: var(--accent);
+      color: #09090b;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 24px rgba(110,231,183,0.35);
+      animation: ai-pulse 2.6s ease-in-out infinite;
+      transition: transform 0.2s, opacity 0.2s;
+      position: relative;
+    }
+    .ai-toggle:hover { transform: scale(1.06); }
+    .ai-toggle .ai-dot {
+      position: absolute;
+      top: -3px; right: -3px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: #f87171;
+      border: 2px solid var(--bg);
+    }
+    @keyframes ai-pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(110,231,183,0.35); }
+      50%       { box-shadow: 0 0 0 10px rgba(110,231,183,0); }
+    }
+
+    .ai-window {
+      width: 330px;
+      max-height: 480px;
+      background: rgba(17,17,20,0.97);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .ai-window.open { display: flex; }
+
+    .ai-header {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .ai-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: rgba(110,231,183,0.12);
+      border: 1px solid rgba(110,231,183,0.4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .ai-header-text { flex: 1; min-width: 0; }
+    .ai-header-title { font-size: 0.82rem; font-weight: 700; }
+    .ai-header-sub {
+      font-size: 0.62rem;
+      color: var(--accent);
+      font-family: 'Space Mono', monospace;
+      display: flex; align-items: center; gap: 0.3rem;
+    }
+    .ai-header-sub::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+    .ai-close {
+      background: none; border: none;
+      color: var(--muted);
+      font-size: 1.1rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.2rem;
+    }
+    .ai-close:hover { color: var(--text); }
+
+    .ai-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      max-height: 320px;
+    }
+    .ai-body::-webkit-scrollbar { width: 5px; }
+    .ai-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .ai-msg {
+      max-width: 86%;
+      padding: 0.55rem 0.75rem;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      line-height: 1.5;
+      animation: ai-msg-in 0.25s ease;
+    }
+    @keyframes ai-msg-in {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .ai-msg.bot {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      border-bottom-left-radius: 2px;
+    }
+    .ai-msg.user {
+      background: var(--accent);
+      color: #09090b;
+      align-self: flex-end;
+      border-bottom-right-radius: 2px;
+      font-weight: 500;
+    }
+
+    .ai-typing {
+      display: flex;
+      gap: 4px;
+      align-self: flex-start;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      padding: 0.6rem 0.85rem;
+      border-radius: 10px;
+    }
+    .ai-typing span {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: ai-typing-bounce 1.1s ease-in-out infinite;
+    }
+    .ai-typing span:nth-child(2) { animation-delay: 0.15s; }
+    .ai-typing span:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes ai-typing-bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+      30% { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .ai-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      padding: 0 1rem 0.85rem;
+    }
+    .ai-chip {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.68rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .ai-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    .ai-input-row {
+      border-top: 1px solid var(--border);
+      padding: 0.65rem 0.75rem;
+      display: flex;
+      gap: 0.5rem;
+    }
+    .ai-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.55rem 0.7rem;
+      color: var(--text);
+      font-size: 0.78rem;
+      font-family: 'Space Grotesk', sans-serif;
+      outline: none;
+    }
+    .ai-input:focus { border-color: var(--accent); }
+    .ai-send {
+      background: var(--accent);
+      color: #09090b;
+      border: none;
+      border-radius: 8px;
+      width: 38px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: opacity 0.2s;
+    }
+    .ai-send:hover { opacity: 0.85; }
+
+    @media (max-width: 768px) {
+      #ai-chat { bottom: 1rem; left: 1rem; }
+      .ai-window { width: calc(100vw - 2rem); max-height: 70vh; }
+      .ai-body { max-height: 50vh; }
+    }
+
     /* ── FOOTER ── */
     footer {
       border-top: 1px solid var(--border);
@@ -1100,6 +1314,30 @@
         <div class="music-wave"></div>
       </div>
     </div>
+  </div>
+
+  <!-- AI CHAT WIDGET -->
+  <div id="ai-chat">
+    <div class="ai-window" id="ai-window">
+      <div class="ai-header">
+        <div class="ai-avatar">🤖</div>
+        <div class="ai-header-text">
+          <div class="ai-header-title">Asistente de Carlos</div>
+          <div class="ai-header-sub">en línea</div>
+        </div>
+        <button class="ai-close" id="ai-close" title="Cerrar">✕</button>
+      </div>
+      <div class="ai-body" id="ai-body"></div>
+      <div class="ai-chips" id="ai-chips"></div>
+      <div class="ai-input-row">
+        <input class="ai-input" id="ai-input" type="text" placeholder="Preguntame algo..." autocomplete="off" />
+        <button class="ai-send" id="ai-send" title="Enviar">→</button>
+      </div>
+    </div>
+    <button class="ai-toggle" id="ai-toggle" title="Hablar con el asistente">
+      <span class="ai-dot"></span>
+      🤖
+    </button>
   </div>
 
   <!-- NAV -->
@@ -1753,110 +1991,159 @@
     });
 
     // ── DDOS DEMO ANIMATION ──
+    // Simulación de un ciclo REAL de mitigación (no es ruido random):
+    // Normal → Detección → Ataque → Mitigación activa → Recuperación → loop
     (function() {
-      const logMessages = [
-        { tag: 'block', cls: 'block', msg: 'IP 185.234.219.47 — UDP flood bloqueada (rate limit)' },
-        { tag: 'block', cls: 'block', msg: 'IP 103.77.12.9 — SYN flood detectada, DROP' },
-        { tag: 'warn',  cls: 'warn',  msg: 'Threshold alcanzado: 80k req/s — activando modo escudo' },
-        { tag: 'allow', cls: 'allow', msg: 'Tráfico legítimo 192.168.1.0/24 — bypass autorizado' },
-        { tag: 'block', cls: 'block', msg: 'IP 91.108.56.12 — HTTP flood, regla CF activada' },
-        { tag: 'allow', cls: 'allow', msg: 'CDN edge node — 2,840 req/s limpias enrutadas' },
-        { tag: 'block', cls: 'block', msg: 'Botnet subnet 45.155.x.x — /24 en blacklist' },
-        { tag: 'warn',  cls: 'warn',  msg: 'Pico de tráfico: origen AS detectado — geoblocking' },
-        { tag: 'allow', cls: 'allow', msg: 'Cloudflare proxy activo — SSL termination OK' },
-        { tag: 'block', cls: 'block', msg: 'IP 77.91.84.3 — amplificación DNS, REJECT' },
-        { tag: 'allow', cls: 'allow', msg: 'Rate limiting aplicado — 98.3% tráfico limpio' },
-        { tag: 'block', cls: 'block', msg: 'IP 194.165.16.x — ICMP flood bloqueada' },
-      ];
-
       const chart = document.getElementById('ddos-chart');
       const log = document.getElementById('ddos-log');
       const rpsEl = document.getElementById('ddos-rps');
       const blockedEl = document.getElementById('ddos-blocked');
       const badge = document.getElementById('ddos-status-badge');
 
-      // Generar barras del chart
+      // Fases del ciclo de mitigación, cada una con su rango de RPS y mensajes propios
+      const PHASES = [
+        {
+          name: 'normal', duration: 9000, rpsFrom: 900, rpsTo: 1600, status: 'clean',
+          badge: '✓ PROTEGIDO', badgeColor: 'var(--accent)',
+          messages: [
+            'Tráfico estable — 100% legítimo',
+            'Cloudflare proxy activo — SSL termination OK',
+            'CDN edge node — tráfico limpio enrutado',
+            'Rate limiting en espera — sin anomalías'
+          ]
+        },
+        {
+          name: 'ramp', duration: 4000, rpsFrom: 1600, rpsTo: 92000, status: 'attack',
+          badge: '⚠ PICO DE TRÁFICO', badgeColor: '#fbbf24',
+          messages: [
+            'Pico de tráfico detectado — analizando origen',
+            'Múltiples IPs desde subnet sospechosa 45.155.x.x',
+            'Threshold superado: escalando a modo escudo'
+          ]
+        },
+        {
+          name: 'attack', duration: 5000, rpsFrom: 92000, rpsTo: 96000, status: 'attack',
+          badge: '⚠ ATAQUE DETECTADO', badgeColor: '#f87171',
+          messages: [
+            'IP 185.234.219.47 — UDP flood, DROP',
+            'IP 103.77.12.9 — SYN flood detectada',
+            'Botnet subnet 45.155.x.x — /24 en blacklist',
+            'IP 91.108.56.12 — HTTP flood, regla CF activada',
+            'IP 77.91.84.3 — amplificación DNS, REJECT'
+          ]
+        },
+        {
+          name: 'mitigating', duration: 6000, rpsFrom: 96000, rpsTo: 6000, status: 'mitigated',
+          badge: '⚡ MITIGANDO...', badgeColor: '#fbbf24',
+          messages: [
+            'Rate limiting aplicado — filtrando origen del ataque',
+            'IP 194.165.16.x — ICMP flood bloqueada',
+            'Geoblocking activado sobre AS detectado',
+            'Tráfico limpio recuperándose — 87% filtrado',
+            'Mitigación efectiva — descendiendo a niveles normales'
+          ]
+        },
+        {
+          name: 'recovering', duration: 3000, rpsFrom: 6000, rpsTo: 900, status: 'clean',
+          badge: '✓ PROTEGIDO', badgeColor: 'var(--accent)',
+          messages: [
+            'Tráfico legítimo 192.168.1.0/24 — bypass autorizado',
+            'Niveles normales restablecidos',
+            'Sistema estable — 99.99% uptime'
+          ]
+        }
+      ];
+
+      let blocked = 1247;
+      let phaseIdx = 0;
+      let phaseStart = performance.now();
       const barCount = 48;
       const bars = [];
+      const history = []; // valores rps recientes, para dibujar las barras
+
       for (let i = 0; i < barCount; i++) {
         const bar = document.createElement('div');
-        bar.className = 'ddos-bar';
-        const isAttack = i > 20 && i < 40;
-        const isMitigated = i >= 35 && i < 40;
-        bar.classList.add(isMitigated ? 'mitigated' : isAttack ? 'attack' : 'clean');
-        const h = isAttack ? (30 + Math.random() * 28) : (8 + Math.random() * 18);
-        bar.style.height = h + 'px';
+        bar.className = 'ddos-bar clean';
+        bar.style.height = '8px';
         chart.appendChild(bar);
         bars.push(bar);
+        history.push(900);
       }
 
-      let logIdx = 0;
-      let blocked = 1247;
-      let rps = 84320;
-      let mitigating = false;
+      function ease(t) { return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
-      function addLog() {
-        const entry = logMessages[logIdx % logMessages.length];
-        logIdx++;
+      function currentPhase(now) {
+        let phase = PHASES[phaseIdx];
+        const elapsed = now - phaseStart;
+        if (elapsed >= phase.duration) {
+          phaseIdx = (phaseIdx + 1) % PHASES.length;
+          phaseStart = now;
+          phase = PHASES[phaseIdx];
+          return { phase, progress: 0 };
+        }
+        return { phase, progress: Math.min(elapsed / phase.duration, 1) };
+      }
 
-        // Limpiar logs viejos si hay más de 4
+      function addLog(phase) {
+        const msg = phase.messages[Math.floor(Math.random() * phase.messages.length)];
         const existing = log.querySelectorAll('.ddos-log-line');
         if (existing.length >= 4) existing[0].remove();
-
         const now = new Date();
-        const time = now.toTimeString().slice(0,8);
+        const time = now.toTimeString().slice(0, 8);
+        const tagCls = phase.status === 'clean' ? 'allow' : phase.status === 'mitigated' ? 'warn' : 'block';
+        const tagTxt = phase.status === 'clean' ? 'ALLOW' : phase.status === 'mitigated' ? 'MITIG' : 'BLOCK';
         const line = document.createElement('div');
         line.className = 'ddos-log-line';
-        line.innerHTML = `<span class="ddos-log-time">${time}</span><span class="ddos-log-tag ${entry.cls}">${entry.tag.toUpperCase()}</span><span class="ddos-log-msg">${entry.msg}</span>`;
+        line.innerHTML = `<span class="ddos-log-time">${time}</span><span class="ddos-log-tag ${tagCls}">${tagTxt}</span><span class="ddos-log-msg">${msg}</span>`;
         log.appendChild(line);
         requestAnimationFrame(() => line.classList.add('show'));
       }
 
-      function updateStats() {
-        // Simular variación
-        rps = Math.max(800, rps + (Math.random() > 0.5 ? 1 : -1) * Math.floor(Math.random() * 3000));
-        if (rps > 90000) mitigating = true;
-        if (mitigating) rps = Math.max(800, rps - 2000);
-        if (rps < 5000) { mitigating = false; }
+      function tick() {
+        const now = performance.now();
+        const { phase, progress } = currentPhase(now);
+        const eased = ease(progress);
+        const rps = Math.round(phase.rpsFrom + (phase.rpsTo - phase.rpsFrom) * eased);
 
-        blocked += Math.floor(Math.random() * 8);
+        // bloqueados sube fuerte en ataque/mitigación, casi nada en limpio
+        if (phase.status === 'attack') blocked += Math.floor(40 + Math.random() * 60);
+        else if (phase.status === 'mitigated') blocked += Math.floor(15 + Math.random() * 25);
+        else blocked += Math.random() < 0.3 ? 1 : 0;
 
         rpsEl.textContent = rps.toLocaleString();
         blockedEl.textContent = blocked.toLocaleString();
+        rpsEl.className = 'ddos-stat-val' + (phase.status === 'attack' ? ' red' : phase.status === 'mitigated' ? ' yellow' : '');
+        badge.textContent = phase.badge;
+        badge.style.color = phase.badgeColor;
 
-        if (rps > 40000) {
-          rpsEl.className = 'ddos-stat-val red';
-          badge.textContent = '⚠ ATAQUE DETECTADO';
-          badge.style.color = '#f87171';
-        } else if (rps > 10000) {
-          rpsEl.className = 'ddos-stat-val yellow';
-          badge.textContent = '⚡ MITIGANDO...';
-          badge.style.color = '#fbbf24';
-        } else {
-          rpsEl.className = 'ddos-stat-val';
-          badge.textContent = '✓ PROTEGIDO';
-          badge.style.color = 'var(--accent)';
-        }
-
-        // Scroll chart
+        history.push(rps);
+        history.shift();
+        const maxH = Math.max(...history, 1);
         bars.forEach((bar, i) => {
-          if (i < bars.length - 1) {
-            bar.style.height = bars[i+1].style.height;
-            bar.className = bars[i+1].className;
-          } else {
-            const newH = rps > 40000 ? (28 + Math.random()*28) : rps > 10000 ? (12 + Math.random()*20) : (4 + Math.random()*14);
-            bar.style.height = newH + 'px';
-            bar.className = 'ddos-bar ' + (rps > 40000 ? 'attack' : rps > 10000 ? 'mitigated' : 'clean');
-          }
+          const v = history[i];
+          const h = Math.max(4, (v / maxH) * 56);
+          bar.style.height = h + 'px';
+          bar.className = 'ddos-bar ' + (v > 40000 ? 'attack' : v > 8000 ? 'mitigated' : 'clean');
         });
+      }
+
+      let lastLogPhase = null;
+      function loop() {
+        tick();
+        const phase = PHASES[phaseIdx];
+        if (phase !== lastLogPhase) {
+          addLog(phase);
+          lastLogPhase = phase;
+        }
       }
 
       // Arrancar cuando sea visible
       const ddosObs = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
-          setInterval(updateStats, 600);
-          setInterval(addLog, 1200);
-          addLog();
+          phaseStart = performance.now();
+          setInterval(loop, 500);
+          setInterval(() => addLog(PHASES[phaseIdx]), 1400);
+          loop();
           ddosObs.disconnect();
         }
       }, { threshold: 0.3 });
@@ -1941,6 +2228,221 @@
       }
     }, { threshold: 0.5 });
     heroObs.observe(document.getElementById('hero'));
+
+    // ══════════════════════════════════════════
+    //  ASISTENTE IA — 100% local, sin API ni costos
+    //  Responde por coincidencia de palabras clave
+    //  sobre una base de conocimiento de Carlos Dev
+    // ══════════════════════════════════════════
+    (function() {
+      function norm(str) {
+        return str.toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^\w\s]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
+      }
+
+      const KB = [
+        {
+          id: 'saludo',
+          keywords: ['hola', 'buenas', 'que tal', 'hey', 'buen dia', 'buenas tardes', 'buenas noches'],
+          answer: '¡Hola! 👋 Soy el asistente de Carlos. Puedo contarte sobre sus servicios, stack técnico, proyectos o cómo contactarlo. ¿Qué querés saber?'
+        },
+        {
+          id: 'quien_es',
+          keywords: ['quien es carlos', 'quien sos', 'quien es', 'sobre carlos', 'presentate', 'quien eres'],
+          answer: 'Carlos es desarrollador web full stack de Argentina 🇦🇷. Arrancó del lado del diseño y fue metiéndose cada vez más en frontend y backend. Hoy ayuda a personas y pequeñas empresas a tener presencia digital real: landings, tiendas online, sistemas a medida, bots de Discord, integración de IA local y protección Anti-DDoS.'
+        },
+        {
+          id: 'servicios',
+          keywords: ['servicio', 'que haces', 'que ofreces', 'que hace', 'trabajos', 'que tipo de proyectos'],
+          answer: 'Carlos ofrece: Landing Pages, Tiendas Online (e-commerce), Portafolios & Branding, Web Apps a medida, SEO & Performance, Deploy & Mantenimiento, Bots de Discord, Integración de IA Local y Anti-DDoS & Seguridad. ¿Querés que te cuente algún servicio en particular?'
+        },
+        {
+          id: 'landing',
+          keywords: ['landing', 'pagina de ventas', 'pagina sencilla'],
+          answer: 'Las landing pages de Carlos están pensadas para conversión: diseño atractivo, carga rápida y 100% responsive, hechas con HTML, CSS y JS puro o frameworks según lo que necesite el proyecto.'
+        },
+        {
+          id: 'ecommerce',
+          keywords: ['tienda', 'ecommerce', 'e-commerce', 'vender online', 'carrito', 'pagos'],
+          answer: 'Para tiendas online, Carlos trabaja con React, Node.js, Stripe para pagos y MongoDB. Incluye carrito persistente, panel de administración y todo listo para vender desde el día uno.'
+        },
+        {
+          id: 'webapp',
+          keywords: ['web app', 'aplicacion web', 'dashboard', 'sistema de gestion', 'app a medida'],
+          answer: 'Para aplicaciones web a medida (dashboards, sistemas de gestión, herramientas internas) Carlos usa React, Express y PostgreSQL, full stack de principio a fin.'
+        },
+        {
+          id: 'seo',
+          keywords: ['seo', 'posicionamiento', 'core web vitals', 'lighthouse', 'velocidad de carga'],
+          answer: 'Carlos hace optimización SEO & Performance: velocidad de carga, Core Web Vitals, Lighthouse y posicionamiento en buscadores. De hecho este mismo portafolio tiene SEO completo implementado (meta tags, sitemap, JSON-LD, Open Graph).'
+        },
+        {
+          id: 'discord_bot',
+          keywords: ['discord', 'bot de discord', 'bot discord', 'tickets discord'],
+          answer: 'Carlos desarrolla bots de Discord personalizados: sistemas de tickets, roles automáticos, moderación, comandos slash y más, con discord.py o discord.js según el proyecto.'
+        },
+        {
+          id: 'ia_local',
+          keywords: ['ia local', 'inteligencia artificial', 'chatbot', 'ollama', 'llama', 'modelo de lenguaje', 'asistente con ia'],
+          answer: 'Carlos integra modelos de lenguaje corriendo en servidor propio (Ollama, LLaMA, Mistral) sin mandar datos a terceros — chatbots y asistentes privados bajo control total del cliente. Este mismo chat con el que estás hablando es un ejemplo de asistente 100% local, sin depender de ninguna API externa. 😉'
+        },
+        {
+          id: 'ddos',
+          keywords: ['ddos', 'seguridad', 'ataque', 'mitigacion', 'rate limit', 'firewall', 'proteccion'],
+          answer: 'Carlos también trabaja en Anti-DDoS & Seguridad: mitigación de ataques, rate limiting, filtrado de tráfico y protección perimetral con Cloudflare, Nginx, iptables y Fail2ban. Bajá hasta la sección "Anti-DDoS" del portafolio para ver una simulación del proceso de mitigación.'
+        },
+        {
+          id: 'stack',
+          keywords: ['stack', 'tecnologias', 'tecnologia', 'lenguajes', 'que usa', 'herramientas'],
+          answer: 'Stack de Carlos → Frontend: HTML5, CSS3, JavaScript, React, Next.js, Tailwind, TypeScript. Backend: Node.js, Express, REST APIs, JWT, Socket.io. Bases de datos: MongoDB, PostgreSQL, MySQL, Prisma. Deploy: Git, Docker, Vercel, Cloudflare, CI/CD, Linux.'
+        },
+        {
+          id: 'proyectos',
+          keywords: ['proyecto', 'portafolio', 'ejemplos', 'trabajos anteriores', 'mostrame algo'],
+          answer: 'Algunos proyectos de Carlos: E-Commerce Full Stack (Next.js + Stripe + MongoDB), Landing de Servicios, Sistema de Gestión interno (React + Express + PostgreSQL) y Portafolio Profesional con CMS headless. Podés verlos con más detalle en la sección "Proyectos" de esta página.'
+        },
+        {
+          id: 'contacto',
+          keywords: ['contacto', 'contactar', 'whatsapp', 'numero', 'telefono', 'escribir', 'hablar con carlos', 'presupuesto', 'cotizar', 'precio', 'cuanto cuesta', 'cuanto sale'],
+          answer: 'Para hablar directo con Carlos: por WhatsApp al +54 9 3772 53-3832, por Discord (ouckerspy), o completando el formulario de la sección "Contacto" más abajo. Te responde rápido y te tira un presupuesto según tu proyecto.'
+        },
+        {
+          id: 'ubicacion',
+          keywords: ['donde esta', 'ubicacion', 'pais', 'argentina', 'de donde es', 'zona horaria'],
+          answer: 'Carlos está en Argentina 🇦🇷, pero trabaja remoto sin problema con clientes de cualquier país.'
+        },
+        {
+          id: 'disponibilidad',
+          keywords: ['disponible', 'disponibilidad', 'puede empezar', 'tiempos de entrega', 'plazo'],
+          answer: 'Carlos está disponible para nuevos proyectos. Los plazos se acuerdan según el alcance, y algo que valora mucho es cumplir los tiempos pactados sin sorpresas de último momento.'
+        },
+        {
+          id: 'valores',
+          keywords: ['valores', 'por que elegirlo', 'por que contratarlo', 'diferencial'],
+          answer: 'Lo que distingue a Carlos: puntualidad real en los plazos, foco en resultados (no solo sitios bonitos), comunicación clara sin tecnicismos innecesarios, y pasión genuina por la web.'
+        },
+        {
+          id: 'sos_real',
+          keywords: ['sos una ia', 'eres una ia', 'sos chatgpt', 'sos claude', 'sos real', 'sos un bot', 'como funcionas', 'eres un bot'],
+          answer: 'Soy un asistente local hecho a medida para este portafolio: funciono con reglas y una base de conocimiento sobre Carlos, sin conectarme a ninguna API externa ni IA generativa de terceros. ¡Como el ejemplo perfecto de "IA Local" que él mismo ofrece como servicio! 🤖'
+        }
+      ];
+
+      const FALLBACKS = [
+        'No tengo una respuesta puntual para eso, pero le podés preguntar directo a Carlos por WhatsApp o el formulario de contacto. ¿Querés que te pase esos datos?',
+        'Esa no la tengo en mi base de datos 😅 Probá preguntarme sobre servicios, stack, proyectos o cómo contactar a Carlos.'
+      ];
+
+      const SUGGESTED = [
+        '¿Qué servicios ofrecés?',
+        '¿Qué tecnologías usás?',
+        '¿Cómo te contacto?',
+        '¿Tenés proyectos para mostrar?'
+      ];
+
+      function findAnswer(text) {
+        const q = norm(text);
+        const qWords = q.split(' ');
+        let best = null;
+        let bestScore = 0;
+        KB.forEach(entry => {
+          let score = 0;
+          entry.keywords.forEach(kw => {
+            const nkw = norm(kw);
+            if (q.includes(nkw)) {
+              score += nkw.split(' ').length * 2;
+            } else {
+              const kwWords = nkw.split(' ');
+              const matched = kwWords.filter(w => qWords.includes(w)).length;
+              score += matched;
+            }
+          });
+          if (score > bestScore) {
+            bestScore = score;
+            best = entry;
+          }
+        });
+        if (best && bestScore >= 2) return best.answer;
+        return FALLBACKS[Math.floor(Math.random() * FALLBACKS.length)];
+      }
+
+      const aiToggle = document.getElementById('ai-toggle');
+      const aiWindow = document.getElementById('ai-window');
+      const aiClose = document.getElementById('ai-close');
+      const aiBody = document.getElementById('ai-body');
+      const aiChips = document.getElementById('ai-chips');
+      const aiInput = document.getElementById('ai-input');
+      const aiSend = document.getElementById('ai-send');
+
+      let opened = false;
+      let chipsShown = false;
+
+      function addMsg(text, who) {
+        const div = document.createElement('div');
+        div.className = 'ai-msg ' + who;
+        div.textContent = text;
+        aiBody.appendChild(div);
+        aiBody.scrollTop = aiBody.scrollHeight;
+      }
+
+      function showChips() {
+        aiChips.innerHTML = '';
+        SUGGESTED.forEach(q => {
+          const chip = document.createElement('button');
+          chip.className = 'ai-chip';
+          chip.textContent = q;
+          chip.addEventListener('click', () => sendUserMessage(q));
+          aiChips.appendChild(chip);
+        });
+      }
+
+      function hideChips() {
+        aiChips.innerHTML = '';
+      }
+
+      function sendUserMessage(text) {
+        if (!text.trim()) return;
+        addMsg(text, 'user');
+        aiInput.value = '';
+        hideChips();
+
+        const typingEl = document.createElement('div');
+        typingEl.className = 'ai-typing';
+        typingEl.innerHTML = '<span></span><span></span><span></span>';
+        aiBody.appendChild(typingEl);
+        aiBody.scrollTop = aiBody.scrollHeight;
+
+        const delay = 500 + Math.random() * 700;
+        setTimeout(() => {
+          typingEl.remove();
+          addMsg(findAnswer(text), 'bot');
+          if (!chipsShown) showChips();
+        }, delay);
+      }
+
+      aiToggle.addEventListener('click', () => {
+        opened = !opened;
+        aiWindow.classList.toggle('open', opened);
+        if (opened && aiBody.children.length === 0) {
+          addMsg('¡Hola! 👋 Soy el asistente de Carlos. Preguntame sobre sus servicios, su stack o cómo contactarlo.', 'bot');
+          showChips();
+          chipsShown = true;
+        }
+      });
+
+      aiClose.addEventListener('click', () => {
+        opened = false;
+        aiWindow.classList.remove('open');
+      });
+
+      aiSend.addEventListener('click', () => sendUserMessage(aiInput.value));
+      aiInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendUserMessage(aiInput.value);
+      });
+    })();
   </script>
 </body>
 </html>
