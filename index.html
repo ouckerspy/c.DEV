@@ -2112,48 +2112,80 @@
       }
 
       // ── Al cargar: detectar IP real del visitante y logearla ──
+      // ── Eventos reales de Cloudflare via Worker ──
+      const CF_WORKER_URL = 'https://ddos-events.rproberto645.workers.dev';
+      let lastEventTs = null;
+      let cfWorkerActive = false;
+
+      async function fetchCFEvents() {
+        try {
+          const res = await fetch(CF_WORKER_URL);
+          if (!res.ok) return;
+          const data = await res.json();
+          const events = data.events || [];
+          for (const ev of events) {
+            if (lastEventTs && ev.ts <= lastEventTs) continue;
+            const ispShort = (ev.isp || '').length > 26 ? ev.isp.slice(0, 26) + '\u2026' : (ev.isp || 'ISP desconocido');
+            const action = (ev.action || '').toLowerCase();
+            if (action === 'block' || action === 'drop') {
+              engine.totalBlockedHits++;
+              engine.totalProcessed++;
+              logLine('block', 'BLOCK', `${ev.ip} (${ev.country}) \u2014 ${ispShort} \u2014 bloqueado por Cloudflare`);
+            } else if (action === 'challenge' || action === 'managed_challenge' || action === 'js_challenge') {
+              engine.totalProcessed++;
+              logLine('warn', 'WARN', `${ev.ip} (${ev.country}) \u2014 ${ispShort} \u2014 desaf\u00edo CAPTCHA activado`);
+            } else {
+              engine.totalProcessed++;
+              logLine('allow', 'ALLOW', `${ev.ip} (${ev.country}) \u2014 ${ispShort} \u2014 permitido`);
+            }
+          }
+          if (events.length > 0) { lastEventTs = events[0].ts; cfWorkerActive = true; }
+        } catch (e) {}
+      }
+
       async function logRealVisitor() {
         if (visitorLogged) return;
         visitorLogged = true;
 
-        logLine('allow', 'CONN', `Nueva conexión entrante — obteniendo datos...`);
+        logLine('allow', 'CONN', `Nueva conexi\u00f3n entrante \u2014 obteniendo datos...`);
 
         const data = await fetchVisitorIP();
         if (!data) {
-          logLine('warn', 'WARN', `No se pudo obtener IP del visitante — red restringida`);
+          logLine('warn', 'WARN', `No se pudo obtener IP del visitante \u2014 red restringida`);
           return;
         }
 
         engine.process(data.ip);
-
-        const orgShort = data.org.length > 28 ? data.org.slice(0, 28) + '…' : data.org;
+        const orgShort = data.org.length > 28 ? data.org.slice(0, 28) + '\u2026' : data.org;
 
         if (data.isDatacenter) {
-          logLine('warn', 'WARN', `${data.ip} (${data.country} · ${data.city}) — ${orgShort} — datacenter/VPN detectado`);
+          logLine('warn', 'WARN', `${data.ip} (${data.country} \u00b7 ${data.city}) \u2014 ${orgShort} \u2014 datacenter/VPN detectado`);
           setTimeout(() => {
-            logLine('block', 'BLOCK', `${data.ip} clasificada como infraestructura no residencial — bajo monitoreo`);
+            logLine('block', 'BLOCK', `${data.ip} clasificada como infraestructura no residencial \u2014 bajo monitoreo`);
           }, 1800);
         } else {
-          logLine('allow', 'ALLOW', `${data.ip} (${data.country} · ${data.city}) — ${orgShort} — tráfico legítimo`);
+          logLine('allow', 'ALLOW', `${data.ip} (${data.country} \u00b7 ${data.city}) \u2014 ${orgShort} \u2014 tr\u00e1fico leg\u00edtimo`);
         }
 
-        // Seguir procesando la IP real en el motor cada tanto para que aparezca en stats
         LEGIT_IPS[0] = data.ip;
+        fetchCFEvents();
+        setInterval(fetchCFEvents, 10000);
       }
 
-      // ── tráfico base "legítimo", siempre corriendo ──
+      // \u2500\u2500 tr\u00e1fico base "leg\u00edtimo", siempre corriendo \u2500\u2500
       setInterval(() => {
         engine.process(pick(LEGIT_IPS));
       }, rnd(300, 600));
 
-      // ── log ocasional de tráfico limpio ──
+      // \u2500\u2500 log ocasional de tr\u00e1fico limpio (solo si worker no est\u00e1 activo) \u2500\u2500
       setInterval(() => {
-        if (!attackActive && engine.activeBlocks() === 0) {
+        if (!attackActive && !cfWorkerActive && engine.activeBlocks() === 0) {
           const ip = pick(LEGIT_IPS);
           const country = visitorData && ip === visitorData.ip ? visitorData.country : pick(COUNTRIES_FALLBACK);
-          logLine('allow', 'ALLOW', `Req desde ${ip} (${country}) — rate: OK — sin anomalías`);
+          logLine('allow', 'ALLOW', `Req desde ${ip} (${country}) \u2014 rate: OK \u2014 sin anomal\u00edas`);
         }
       }, rnd(7000, 11000));
+
 
       // ── simulación de ataque ──
       function runAttack() {
